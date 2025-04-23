@@ -58,6 +58,11 @@ const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave, initialData,
             setPhone1('');
             setPhone2('');
         }
+        inputRef.current?.focus();
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, [initialData, isEdit, isOpen]);
 
     const handleUsernameChange = (value: string) => {
@@ -78,11 +83,18 @@ const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave, initialData,
     };
 
     const phone2Ref = React.useRef<HTMLInputElement>(null);
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
 
     const handleSubmit = () => {
         const fullPhone = `010-${phone1}-${phone2}`;
         onSave(name, englishname, username, password, role, position, email, fullPhone);
         onClose();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            onClose();
+        }
     };
 
     if (!isOpen) return null;
@@ -100,6 +112,7 @@ const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave, initialData,
                             <div className="flex items-center gap-4">
                                 <label className="text-sm font-medium w-20">이름</label>
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import {NavLink, useNavigate} from 'react-router-dom';
 
 // 토큰 파싱 함수
 const getUserInfoFromToken = (token: string): { name?: string; englishname?: string; position?: string } | null => {
@@ -33,7 +33,7 @@ const Header = () => {
     };
 
     return (
-        <header className="flex justify-between items-center px-6 py-4 bg-white shadow-md border-b">
+        <header className="flex justify-between items-center px-6 py-2 bg-white shadow-md border-b">
             <h2 className="text-xl font-bold text-gray-800">ERP 시스템</h2>
             <div className="flex items-center gap-4">
                 {userInfo && (
@@ -42,11 +42,19 @@ const Header = () => {
                         {userInfo.englishname && (
                             <span>({userInfo.englishname}) </span>
                         )}
-                        {userInfo.position && (
-                            <span>{userInfo.position}</span>
-                        )}</strong>님
+                    </strong>님
                     </span>
                 )}
+                <NavLink
+                    to="/mypage"
+                    className={({ isActive }) =>
+                        isActive
+                            ? 'text-gray-400 font-bold border-b-2 border-gray-400'
+                            : 'text-gray-700 font-bold border-b-2  border-gray-700 hover:text-gray-400 hover:border-gray-400'
+                    }
+                >
+                    마이페이지
+                </NavLink>
                 <button
                     onClick={handleLogout}
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"

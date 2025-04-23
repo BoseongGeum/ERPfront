@@ -4,11 +4,11 @@ import logo from '../images/favicon.png';
 
 const Sidebar = () => {
     return (
-        <div className="w-60 bg-gray-800 text-white h-full p-6">
+        <div className="w-60 bg-black text-white h-full p-6">
             {/* 로고 이미지 - 클릭 시 대시보드로 이동 */}
             <NavLink
-                to="/dashboard"
-                className="block mb-8 transition-transform duration-300 hover:scale-105"
+                to="/home"
+                className="block mb-8 transition-transform duration-300 hover:scale-125"
             >
                 <img
                     src={logo}
@@ -20,20 +20,15 @@ const Sidebar = () => {
             {/* 메뉴 */}
             <nav className="flex flex-col space-y-4">
                 <NavLink
-                    to="/mypage"
-                    className={({ isActive }) =>
-                        isActive ? 'text-blue-300 font-semibold' : 'hover:text-blue-200'
-                    }
-                >
-                    마이페이지
-                </NavLink>
-                <NavLink
                     to="/users"
-                    className={({ isActive }) =>
-                        isActive ? 'text-blue-300 font-semibold' : 'hover:text-blue-200'
-                    }
+                    className="text-white hover:text-gray-400"
                 >
-                    사용자 관리
+                    {({ isActive }) => (
+                        <div className="inline-flex items-center font-bold space-x-2">
+                            <span className={isActive ? 'text-gray-400' : ''}>사용자 관리</span>
+                            {isActive && <span className="text-gray-400">✔</span>}
+                        </div>
+                    )}
                 </NavLink>
             </nav>
         </div>

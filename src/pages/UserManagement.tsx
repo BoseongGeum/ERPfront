@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axiosConfig';
 import UserModal from '../components/UserModal';
+import { toast } from 'react-toastify';
 
 interface User {
     id: number;
@@ -52,8 +53,12 @@ const UserManagement: React.FC = () => {
                     email,
                     phoneNumber,
                 });
+                toast.success('사용자 정보가 수정되었습니다.');
             } else {
-                await api.post('/auth/register', { name, englishname, username, password, role, position, email, phoneNumber });
+                await api.post('/auth/register', {
+                    name, englishname, username, password, role, position, email, phoneNumber
+                });
+                toast.success('새 사용자가 등록되었습니다.');
             }
 
             await fetchUsers();
@@ -61,7 +66,7 @@ const UserManagement: React.FC = () => {
             setSelectedUser(null);
             setIsEditMode(false);
         } catch (err: any) {
-            alert(err.response?.data?.message || '저장 실패');
+            toast.error(err.response?.data?.message || '저장에 실패했습니다.');
         }
     };
 
@@ -96,27 +101,49 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const handleDeleteSelected = async () => {
+    const handleDeleteSelected = async (closeToast: () => void) => {
         if (selectedUsernames.size === 0) {
-            alert('삭제할 사용자를 선택하세요.');
+            toast.info('삭제할 사용자를 선택하세요.');
             return;
         }
 
-        const confirmed = window.confirm('선택한 사용자를 삭제하시겠습니까?');
-        if (!confirmed) return;
-
         try {
             await api.delete('/auth/delete', {
-                data: Array.from(selectedUsernames), // ["admin", "tester"]
+                data: Array.from(selectedUsernames),
             });
+            toast.success('선택한 사용자가 삭제되었습니다.');
             await fetchUsers();
             setSelectedUserIds(new Set());
             setSelectedUsernames(new Set());
         } catch (err) {
             console.error('삭제 실패:', err);
-            alert('삭제에 실패했습니다.');
+            toast.error('삭제에 실패했습니다.');
+        } finally {
+            closeToast();
         }
     };
+
+    const DeleteConfirmToast = ({ closeToast }: { closeToast: () => void }) => (
+        <div className="w-full h-full flex flex-col items-center justify-center p-6">
+            <div className="text-lg font-semibold mb-4 text-gray-800 text-center">
+                정말 삭제하시겠어요?
+            </div>
+            <div className="flex justify-center gap-4">
+                <button
+                    onClick={() => handleDeleteSelected(closeToast)}
+                    className="px-5 py-2 rounded-lg font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow"
+                >
+                    네, 삭제할래요
+                </button>
+                <button
+                    onClick={closeToast}
+                    className="px-5 py-2 rounded-lg font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 transition shadow"
+                >
+                    아니오
+                </button>
+            </div>
+        </div>
+    );
 
     useEffect(() => {
         fetchUsers();
@@ -129,7 +156,7 @@ const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => {
-                            if (selectedUserIds.size === users.length) {
+                            if (selectedUserIds.size !== 0) {
                                 setSelectedUserIds(new Set());
                                 setSelectedUsernames(new Set());
                             } else {
@@ -141,7 +168,7 @@ const UserManagement: React.FC = () => {
                         }}
                         className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-5 py-2 rounded-lg shadow"
                     >
-                        {selectedUserIds.size === users.length ? '전체 해제' : '전체 선택'}
+                        {selectedUserIds.size !== 0 ? '전체 해제' : '전체 선택'}
                     </button>
                     <button
                         onClick={() => {
@@ -160,7 +187,12 @@ const UserManagement: React.FC = () => {
                 <div className="sticky top-0 z-10 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded shadow mb-4 flex justify-between items-center">
                     <span>{selectedUserIds.size}명 선택됨</span>
                     <button
-                        onClick={handleDeleteSelected}
+                        onClick={() => toast(<DeleteConfirmToast closeToast={toast.dismiss} />, {
+                            autoClose: false, // ⛔ 시간 제한 없음
+                            closeOnClick: false,
+                            closeButton: false,
+                            draggable: false,
+                        })}
                         className="bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-2 rounded-lg shadow"
                     >
                         선택 삭제
@@ -188,8 +220,8 @@ const UserManagement: React.FC = () => {
                         <tr
                             key={user.id}
                             onClick={() => toggleSelectUser(user.id)}
-                            className={`border-b text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ${
-                                selectedUserIds.has(user.id) ? 'bg-red-100' : ''
+                            className={`border-b text-gray-700 cursor-pointer transition-colors duration-150 ${
+                                selectedUserIds.has(user.id) ? 'bg-red-100' : 'hover:bg-gray-100'
                             }`}
                         >
                             <td className="px-4 py-4">
@@ -221,7 +253,7 @@ const UserManagement: React.FC = () => {
                     ))}
                     {users.length === 0 && (
                         <tr>
-                            <td colSpan={6} className="px-6 py-6 text-gray-400">
+                            <td colSpan={9} className="px-6 py-6 text-gray-400">
                                 등록된 사용자가 없습니다.
                             </td>
                         </tr>
