@@ -14,6 +14,22 @@ interface User {
     email: string;
 }
 
+const getRoleFromToken = (token: string): string | null => {
+    try {
+        const payloadBase64 = token.split('.')[1];
+        if (!payloadBase64) throw new Error('Invalid token format');
+
+        const decodedPayload = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+        const payload = JSON.parse(decodedPayload);
+
+        return payload?.role ?? null;
+    } catch (e) {
+        console.error('토큰 파싱 오류:', e);
+        return null;
+    }
+};
+
+
 const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,6 +37,10 @@ const UserManagement: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
     const [selectedUsernames, setSelectedUsernames] = useState<Set<string>>(new Set());
+
+    const token = localStorage.getItem("jwt"); // 관리자 여부 확인용
+    const role = token ? getRoleFromToken(token) : null;
+    const isAdmin = role === 'ADMIN';
 
     const fetchUsers = async () => {
         try {
@@ -170,33 +190,38 @@ const UserManagement: React.FC = () => {
                     >
                         {selectedUserIds.size !== 0 ? '전체 해제' : '전체 선택'}
                     </button>
-                    <button
-                        onClick={() => {
-                            setIsModalOpen(true);
-                            setIsEditMode(false);
-                            setSelectedUser(null);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg shadow"
-                    >
-                        + 사용자 등록
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={() => {
+                                setIsModalOpen(true);
+                                setIsEditMode(false);
+                                setSelectedUser(null);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg shadow"
+                        >
+                            + 사용자 등록
+                        </button>
+                    )}
+
                 </div>
             </div>
 
             {selectedUserIds.size > 0 && (
-                <div className="sticky top-0 z-10 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded shadow mb-4 flex justify-between items-center">
-                    <span>{selectedUserIds.size}명 선택됨</span>
-                    <button
-                        onClick={() => toast(<DeleteConfirmToast closeToast={toast.dismiss} />, {
-                            autoClose: false, // ⛔ 시간 제한 없음
-                            closeOnClick: false,
-                            closeButton: false,
-                            draggable: false,
-                        })}
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-2 rounded-lg shadow"
-                    >
-                        선택 삭제
-                    </button>
+                <div className="fixed top-0 left-0 right-0 z-10 font-bold bg-black text-xl text-white pl-10 pr-4 py-2 rounded shadow mb-4 flex justify-between items-center">
+                    <span>{selectedUserIds.size} 명 선택됨</span>
+                    {isAdmin && (
+                        <button
+                            onClick={() => toast(<DeleteConfirmToast closeToast={toast.dismiss} />, {
+                                autoClose: false, // ⛔ 시간 제한 없음
+                                closeOnClick: false,
+                                closeButton: false,
+                                draggable: false,
+                            })}
+                            className="bg-red-600 hover:bg-red-700 px-5 py-2 text-base rounded-lg shadow"
+                        >
+                            선택 삭제
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -205,13 +230,13 @@ const UserManagement: React.FC = () => {
                     <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                     <tr>
                         <th className="px-4 py-3 border-b w-12"></th>
-                        <th className="px-6 py-3 border-b">이름</th>
-                        <th className="px-6 py-3 border-b">영문이름</th>
-                        <th className="px-6 py-3 border-b">직급</th>
-                        <th className="px-6 py-3 border-b">이메일</th>
-                        <th className="px-6 py-3 border-b">전화번호</th>
-                        <th className="px-6 py-3 border-b">아이디</th>
-                        <th className="px-6 py-3 border-b">권한</th>
+                        <th className="px-6 py-3 border-b font-bold">이름</th>
+                        <th className="px-6 py-3 border-b font-bold">영문이름</th>
+                        <th className="px-6 py-3 border-b font-bold">직급</th>
+                        <th className="px-6 py-3 border-b font-bold">이메일</th>
+                        <th className="px-6 py-3 border-b font-bold">전화번호</th>
+                        <th className="px-6 py-3 border-b font-bold">아이디</th>
+                        <th className="px-6 py-3 border-b font-bold">권한</th>
                         <th className="px-6 py-3 border-b"></th>
                     </tr>
                     </thead>
@@ -221,12 +246,12 @@ const UserManagement: React.FC = () => {
                             key={user.id}
                             onClick={() => toggleSelectUser(user.id)}
                             className={`border-b text-gray-700 cursor-pointer transition-colors duration-150 ${
-                                selectedUserIds.has(user.id) ? 'bg-red-100' : 'hover:bg-gray-100'
+                                selectedUserIds.has(user.id) ? 'bg-blue-100' : 'hover:bg-gray-100'
                             }`}
                         >
                             <td className="px-4 py-4">
                                 {selectedUserIds.has(user.id) ? (
-                                    <span className="text-red-500 font-bold">✔</span>
+                                    <span className="text-blue-500 font-bold">✔</span>
                                 ) : (
                                     ''
                                 )}
@@ -239,15 +264,17 @@ const UserManagement: React.FC = () => {
                             <td className="px-6 py-4">{user.username}</td>
                             <td className="px-6 py-4">{user.role}</td>
                             <td className="px-6 py-4">
-                                <button
-                                    className="text-blue-500 hover:underline font-bold"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleEditClick(user);
-                                    }}
-                                >
-                                    수정
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        className="text-blue-500 hover:underline font-bold"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditClick(user);
+                                        }}
+                                    >
+                                        수정
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}

@@ -88,13 +88,13 @@ const MyPage: React.FC = () => {
             <div className="flex justify-center gap-4">
                 <button
                     onClick={() => handleDeleteAccount(closeToast)}
-                    className="px-5 py-2 rounded-lg font-semibold bg-red-600 text-white hover:bg-red-700 transition shadow"
+                    className="px-5 py-2 rounded-lg font-bold bg-red-600 text-white hover:bg-red-700 transition shadow"
                 >
                     네, 탈퇴할래요
                 </button>
                 <button
                     onClick={closeToast}
-                    className="px-5 py-2 rounded-lg font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 transition shadow"
+                    className="px-5 py-2 rounded-lg font-bold bg-gray-200 text-gray-800 hover:bg-gray-300 transition shadow"
                 >
                     아니오
                 </button>
@@ -125,15 +125,15 @@ const MyPage: React.FC = () => {
                 </div>
             )}
 
-            <h2 className="text-3xl font-semibold text-gray-800 mb-6">마이페이지</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">마이페이지</h2>
             {user && isVerified ? (
                 <>
                     <div className="overflow-x-auto shadow-md rounded-lg">
                         <table className="min-w-full bg-white text-left">
                             <thead>
                             <tr className="bg-gray-200">
-                                <th className="py-3 px-6 text-sm font-semibold text-gray-700">항목</th>
-                                <th className="py-3 px-6 text-sm font-semibold text-gray-700">내용</th>
+                                <th className="py-3 px-6 text-sm font-bold text-gray-700">항목</th>
+                                <th className="py-3 px-6 text-sm font-bold text-gray-700">내용</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -172,7 +172,7 @@ const MyPage: React.FC = () => {
                     <div className="flex justify-end gap-3 mt-6">
                         <button
                             onClick={() => setIsPasswordModalOpen(true)} // 비밀번호 변경 모달 열기
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium px-5 py-2 rounded-lg shadow"
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold px-5 py-2 rounded-lg shadow"
                         >
                             비밀번호 변경
                         </button>
@@ -181,7 +181,7 @@ const MyPage: React.FC = () => {
                                 setIsEditMode(true);
                                 setIsModalOpen(true);
                             }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg shadow"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg shadow"
                         >
                             정보 수정
                         </button>
@@ -192,7 +192,7 @@ const MyPage: React.FC = () => {
                                 closeButton: false,
                                 draggable: false,
                             })}
-                            className="bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-2 rounded-lg shadow"
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2 rounded-lg shadow"
                         >
                             회원 탈퇴
                         </button>
@@ -216,7 +216,7 @@ const MyPage: React.FC = () => {
             <ChangePasswordModal
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}
-                onSave={(newPassword) => {
+                onSave={() => {
                     // 비밀번호 변경 후 추가 작업 처리
                     toast.success("비밀번호가 성공적으로 변경되었습니다.");
                     setIsPasswordModalOpen(false);
