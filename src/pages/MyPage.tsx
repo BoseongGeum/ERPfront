@@ -67,7 +67,7 @@ const MyPage: React.FC = () => {
     const handleDeleteAccount = async (closeToast: () => void) => {
         try {
             const token = localStorage.getItem('jwt');
-            await api.delete('/auth/me', {
+            await api.put('/auth/me/resign', {
                 headers: { Authorization: `Bearer ${token}` },
             });
             toast.success('회원 탈퇴가 완료되었습니다!');

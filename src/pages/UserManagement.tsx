@@ -29,7 +29,6 @@ const getRoleFromToken = (token: string): string | null => {
     }
 };
 
-
 const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,6 +48,19 @@ const UserManagement: React.FC = () => {
         } catch (err) {
             console.error('유저 목록 조회 실패:', err);
         }
+    };
+
+    const withAdminCheck = <T extends (...args: any[]) => void>(callback: T): T => {
+        return ((...args: any[]) => {
+            if (!isAdmin) {
+                toast.warning('권한이 없습니다', {
+                    position: 'top-center',
+                    autoClose: 2000,
+                });
+                return;
+            }
+            callback(...args);
+        }) as T;
     };
 
     const handleSaveUser = async (
@@ -128,9 +140,7 @@ const UserManagement: React.FC = () => {
         }
 
         try {
-            await api.delete('/auth/delete', {
-                data: Array.from(selectedUsernames),
-            });
+            await api.put('/auth/resign', Array.from(selectedUsernames));
             toast.success('선택한 사용자가 삭제되었습니다.');
             await fetchUsers();
             setSelectedUserIds(new Set());
@@ -190,40 +200,38 @@ const UserManagement: React.FC = () => {
                     >
                         {selectedUserIds.size !== 0 ? '전체 해제' : '전체 선택'}
                     </button>
-                    {isAdmin && (
                         <button
-                            onClick={() => {
+                            onClick={withAdminCheck(() => {
                                 setIsModalOpen(true);
                                 setIsEditMode(false);
                                 setSelectedUser(null);
-                            }}
+                            })}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg shadow"
                         >
                             + 사용자 등록
                         </button>
-                    )}
-
                 </div>
             </div>
 
             {selectedUserIds.size > 0 && (
                 <div className="fixed top-0 left-0 right-0 z-10 font-bold bg-black text-xl text-white pl-10 pr-4 py-2 rounded shadow mb-4 flex justify-between items-center">
-                    <span>{selectedUserIds.size} 명 선택됨</span>
-                    {isAdmin && (
-                        <button
-                            onClick={() => toast(<DeleteConfirmToast closeToast={toast.dismiss} />, {
-                                autoClose: false, // ⛔ 시간 제한 없음
+                    <span><strong>{selectedUserIds.size}</strong> 명 선택됨</span>
+                    <button
+                        onClick={withAdminCheck(() => {
+                            toast(<DeleteConfirmToast closeToast={toast.dismiss} />, {
+                                autoClose: false,
                                 closeOnClick: false,
                                 closeButton: false,
                                 draggable: false,
-                            })}
-                            className="bg-red-600 hover:bg-red-700 px-5 py-2 text-base rounded-lg shadow"
-                        >
-                            선택 삭제
-                        </button>
-                    )}
+                            });
+                        })}
+                        className="bg-red-600 hover:bg-red-700 px-5 py-2 text-base rounded-lg shadow"
+                    >
+                        선택 삭제
+                    </button>
                 </div>
             )}
+
 
             <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="min-w-full text-sm text-center">
@@ -264,17 +272,17 @@ const UserManagement: React.FC = () => {
                             <td className="px-6 py-4">{user.username}</td>
                             <td className="px-6 py-4">{user.role}</td>
                             <td className="px-6 py-4">
-                                {isAdmin && (
                                     <button
                                         className="text-blue-500 hover:underline font-bold"
                                         onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEditClick(user);
+                                            e.stopPropagation();  // 수정 버튼 클릭 시 이벤트 전파 막기
+                                            withAdminCheck((e) => {
+                                                handleEditClick(user);
+                                            })(e);
                                         }}
                                     >
                                         수정
                                     </button>
-                                )}
                             </td>
                         </tr>
                     ))}
